@@ -124,7 +124,9 @@ async def on_paid_invoice(payment: Payment, pegging: Pegging) -> None:
     await update_position(pegging, payment.amount, "Ask")
 
 
-async def update_position(pegging: Pegging, delta_amount: int, side: str, scale = True) -> None:
+async def update_position(
+    pegging: Pegging, delta_amount: int, side: str, scale=True
+) -> None:
     client = KolliderRestClient(
         pegging.base_url, pegging.api_key, pegging.api_secret, pegging.api_passphrase
     )
