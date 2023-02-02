@@ -8,6 +8,7 @@ from .models import CreatePeggingData, Pegging
 
 async def create_pegging(wallet_id: str, data: CreatePeggingData) -> Pegging:
     row = await db.fetchone("SELECT * FROM pegging.pegs WHERE wallet = ?", (wallet_id,))
+
     assert not row, "Register only one hedge per wallet"
 
     peg_id = urlsafe_short_hash()

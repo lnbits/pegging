@@ -118,7 +118,7 @@ class Position(object):
                 setattr(cls, k, v)
             return cls
         except Exception as e:
-            logger.error(f"{e} while reading Position object")
+            logger.error(f"Caught {e} while reading Position object")
 
 
 class Positions(object):
@@ -136,7 +136,7 @@ class Positions(object):
                 setattr(cls, k, Position.from_dict(v))
             return cls
         except Exception as e:
-            logger.error(f"{e} while reading Positions object")
+            logger.error(f"Caught {e} while reading Positions object")
 
 
 class Ticker(object):
@@ -169,7 +169,7 @@ class Ticker(object):
                 source["symbol"],
             )
         except Exception as e:
-            print(f"Error {e} while reading Ticker object")
+            logger.error(f"Caught {e} while reading Ticker object")
 
 
 if __name__ in "__main__":

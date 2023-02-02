@@ -17,7 +17,6 @@ def generate_signature(secret, path=None, method=None, body=None):
         what += path
     if body:
         what += json.dumps(body, sort_keys=True).replace(" ", "")
-    print(what)
 
     signature = hmac.new(secret, what.encode(), digestmod=hashlib.sha256).digest()
 

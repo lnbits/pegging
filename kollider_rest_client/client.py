@@ -302,5 +302,9 @@ class KolliderRestClient(object):
         orders = self.get_open_orders()
         if orders and symbol in orders:
             for o in orders[symbol]:
-                logger.debug(f"cancelling order {o['order_id']} - {symbol}")
-                self.cancel_order(order_id=o.order_id, symbol=symbol)
+                if "order_id" in o.keys():
+                    id = o["order_id"]
+                    logger.debug(f"cancelling order {id} - {symbol}")
+                    self.cancel_order(order_id=id, symbol=symbol)
+                else:
+                    logger.error(f"exchange returned {o}. There is no order_id")

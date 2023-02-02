@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 async def hedge_loop():
-    sleep_int = 30
+    sleep_int = 50
     currencies = ["EUR", "USD"]
     no_hedge_msat = 10_000_000
 
@@ -39,14 +39,18 @@ async def hedge_loop():
 
                 c.cancel_all_orders(symbol)
 
+                await asyncio.sleep(5)
+
                 ps = c.get_positions()
                 position_fiat = 0.0
+                position_side = "Bid"
 
                 if hasattr(ps, symbol):
                     p = getattr(ps, symbol)
                     position_fiat = int(
                         p.quantity
                     )  # TODO: type conversions in data types of Kollider client
+                    position_side = p.side
 
                 t = c.get_ticker(symbol)
 
@@ -69,8 +73,8 @@ async def hedge_loop():
                 hedge_delta = wallet.balance_msat - position_msat
 
                 logger.debug(
-                    f"Balance {wallet.balance}sat, position {position_msat/1000}sat,"
-                    f" calculated delta {delta_msat/1000}sat, tolerance {no_hedge_msat/1000}sat"
+                    f"Balance {wallet.balance}sat, position {position_msat/1000:1.0f}sat,"
+                    f" calculated delta {delta_msat/1000:1.0f}sat, tolerance {no_hedge_msat/1000:1.0f}sat"
                 )
 
                 if delta_msat > no_hedge_msat:
@@ -78,15 +82,17 @@ async def hedge_loop():
                         f"Adding to {position_fiat}/{position_msat} {hedge_delta}msat@{price} {symbol}"
                     )
                     await update_position(peg, hedge_delta, "Ask")
+                elif wallet.balance_msat < no_hedge_msat and position_msat > 0:
+                    logger.debug(f"Winding down {position_msat}msat@{price} {symbol}")
+                    if position_side == "Ask":
+                        await update_position(peg, position_msat, "Bid", False)
+                    else:
+                        await update_position(peg, position_msat, "Ask", False)
                 elif delta_msat < (-1) * no_hedge_msat:
                     logger.debug(
                         f"Removing from {position_fiat}/{position_msat} {hedge_delta}msat@{price} {symbol}"
                     )
                     await update_position(peg, abs(hedge_delta), "Bid")
-                elif wallet.balance_msat < no_hedge_msat and position_msat > 0:
-                    to_zero = int(1.0 / percent * position_msat)
-                    logger.debug(f"Winding down {position_msat}msat@{price} {symbol}")
-                    await update_position(peg, to_zero, "Bid")
                 else:
                     continue
 
@@ -118,7 +124,7 @@ async def on_paid_invoice(payment: Payment, pegging: Pegging) -> None:
     await update_position(pegging, payment.amount, "Ask")
 
 
-async def update_position(pegging: Pegging, delta_amount: int, side: str) -> None:
+async def update_position(pegging: Pegging, delta_amount: int, side: str, scale = True) -> None:
     client = KolliderRestClient(
         pegging.base_url, pegging.api_key, pegging.api_secret, pegging.api_passphrase
     )
@@ -133,7 +139,10 @@ async def update_position(pegging: Pegging, delta_amount: int, side: str) -> Non
     price = float(t.best_ask if side == "Bid" else t.best_bid)  # TODO, same, types
     percent = float(pegging.percent) / 100.0  # TODO: same, type support
 
-    fiat_amount = int(percent * price * delta_amount / (1_000 * 100_000_000))
+    if scale:
+        fiat_amount = int(percent * price * delta_amount / (1_000 * 100_000_000))
+    else:
+        fiat_amount = int(price * delta_amount / (1_000 * 100_000_000))
 
     if fiat_amount == 0:
         logger.error(f"Order amount {fiat_amount}. Too few sats?")
