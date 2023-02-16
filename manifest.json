@@ -3,7 +3,7 @@
         {
             "id": "pegging",
             "organisation": "lnbits",
-            "repository": "stable-wallets"
+            "repository": "pegging"
         }
     ]
 }
