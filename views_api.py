@@ -101,9 +101,4 @@ async def api_stop(wallet: WalletTypeInfo = Depends(check_admin)):
         except Exception as ex:
             logger.warning(ex)
 
-    try:
-        await client_manager.stop()
-    except Exception as ex:
-        logger.warning(ex)
-
     return {"success": True}
