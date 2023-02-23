@@ -10,10 +10,10 @@ from lnbits.core.crud import get_latest_payments_by_extension, get_user
 from lnbits.core.models import Payment
 from lnbits.core.services import create_invoice
 from lnbits.core.views.api import api_payment
-from lnbits.decorators import WalletTypeInfo, get_key_type, require_admin_key
+from lnbits.decorators import WalletTypeInfo, get_key_type, require_admin_key, check_admin
 from lnbits.settings import settings
 
-from . import pegging_ext
+from . import pegging_ext, scheduled_tasks
 from .crud import create_pegging, delete_pegging, get_pegging, get_peggings
 from .models import CreatePeggingData
 
@@ -91,3 +91,19 @@ async def api_pegging_create_invoice(
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
     return {"payment_hash": payment_hash, "payment_request": payment_request}
+
+
+@pegging_ext.delete("/api/v1", status_code=HTTPStatus.OK)
+async def api_stop(wallet: WalletTypeInfo = Depends(check_admin)):
+    for t in scheduled_tasks:
+        try:
+            t.cancel()
+        except Exception as ex:
+            logger.warning(ex)
+
+    try:
+        await client_manager.stop()
+    except Exception as ex:
+        logger.warning(ex)
+
+    return {"success": True}
