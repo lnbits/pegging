@@ -10,7 +10,7 @@ from lnbits.tasks import register_invoice_listener
 from .crud import get_pegging, get_pegged_currencies, get_peggings
 from .kollider_rest_client import KolliderRestClient, Order
 from .models import Pegging
-from ...core import get_wallet
+from lnbits.core.crud import get_wallet
 
 log = logging.getLogger(__name__)
 
