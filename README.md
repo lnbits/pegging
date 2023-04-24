@@ -1,4 +1,5 @@
-# Pegged Assets
+# Pegged Assets - <small>[LNbits](https://github.com/lnbits/lnbits) extension</small>
+<small>For more about LNBits extension check [this tutorial](https://github.com/lnbits/lnbits/wiki/LNbits-Extensions)</small>
 
 ## Keep a pegged balance in a wallet
 
