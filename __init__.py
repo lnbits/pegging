@@ -15,7 +15,6 @@ pegging_ext: APIRouter = APIRouter(prefix="/pegging", tags=["Pegging"])
 pegging_static_files = [
     {
         "path": "/pegging/static",
-        "app": StaticFiles(directory="lnbits/extensions/pegging/static"),
         "name": "pegging_static",
     }
 ]
@@ -23,7 +22,7 @@ pegging_static_files = [
 scheduled_tasks: List[asyncio.Task] = []
 
 def pegging_renderer():
-    return template_renderer(["lnbits/extensions/pegging/templates"])
+    return template_renderer(["pegging/templates"])
 
 
 from .tasks import wait_for_paid_invoices, hedge_loop
